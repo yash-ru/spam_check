@@ -1,0 +1,8 @@
+streamlit>=1.25.0
+pandas>=1.5.0
+requests>=2.25.0
+tldextract>=3.4.0
+python-whois>=0.2.3
+dnspython>=2.3.0
+beautifulsoup4>=4.12.2
+ipwhois>=1.2.0
