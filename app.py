@@ -55,6 +55,7 @@ def main():
             
             # Display main results (Domain, SpamScore, Flags)
             st.write("Results:")
+            st.write("SpamScore 0 => Spammy Domain")
             results_summary = results_df[["Domain", "SpamScore", "RiskLevel", "Flags"]]
             st.dataframe(results_summary)
             
@@ -70,4 +71,5 @@ def main():
             st.error("Please enter at least one domain")
     
 if __name__ == "__main__":
+
     main()
