@@ -536,13 +536,11 @@ def score_domain(row):
         if pagerank < 3.5:
             penalty = (3.5 - pagerank) / 3.5 * 20
             score -= penalty
-            breakdown.append(f"LOW_PAGERANK=-{penalty:.2f}(PR={pagerank})")
             flags.append("LOW_PAGERANK")
             evidence.append(f"PageRank {pagerank} - penalized")
         else:
             bonus = (pagerank / 10) * 30
             score += bonus
-            breakdown.append(f"GOOD_PAGERANK=+{bonus:.2f}(PR={pagerank})")
             flags.append("GOOD_PAGERANK")
             evidence.append(f"PageRank {pagerank} - rewarded")
     
@@ -798,3 +796,4 @@ def print_summary(rows):
 if __name__ == "__main__":
 
     main()
+
