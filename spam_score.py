@@ -543,6 +543,10 @@ def score_domain(row):
             score += bonus
             flags.append("GOOD_PAGERANK")
             evidence.append(f"PageRank {pagerank} - rewarded")
+    else:
+        score -= 15
+        flags.append("Missing Pagerank")
+        evidence.append(f"Missing Pagerank")
     
     # Archive history
     archive_count = safe_int(row.get('Archive_Count'))
@@ -796,4 +800,5 @@ def print_summary(rows):
 if __name__ == "__main__":
 
     main()
+
 
