@@ -531,21 +531,20 @@ def score_domain(row):
     # ========================================================================
     
     # PageRank
-    pagerank = safe_int(row.get('PageRank'))
+    pagerank = safe_float(row.get('PageRank_Score'))
     if pagerank is not None:
-        if pagerank >= 7:
-            score += 30
-            flags.append("HIGH_PAGERANK")
-            evidence.append(f"PageRank {pagerank}/10")
-        elif pagerank >= 5:
-            score += 25
-            flags.append("GOOD_PAGERANK")
-        elif pagerank >= 3:
-            score += 10
-            flags.append("MODERATE_PAGERANK")
-        else:
-            score -= 10
+        if pagerank < 3.5:
+            penalty = (3.5 - pagerank) / 3.5 * 20
+            score -= penalty
+            breakdown.append(f"LOW_PAGERANK=-{penalty:.2f}(PR={pagerank})")
             flags.append("LOW_PAGERANK")
+            evidence.append(f"PageRank {pagerank} - penalized")
+        else:
+            bonus = (pagerank / 10) * 30
+            score += bonus
+            breakdown.append(f"GOOD_PAGERANK=+{bonus:.2f}(PR={pagerank})")
+            flags.append("GOOD_PAGERANK")
+            evidence.append(f"PageRank {pagerank} - rewarded")
     
     # Archive history
     archive_count = safe_int(row.get('Archive_Count'))
@@ -797,4 +796,5 @@ def print_summary(rows):
                 print()
 
 if __name__ == "__main__":
+
     main()
