@@ -470,9 +470,43 @@ def fetch_pagerank(domain):
     return None, None
 
 
+import re
+
+import re
+
 def parse_txt_for_email_security(txt_records):
-    spf = "Yes" if any("v=spf1" in x.lower() for x in txt_records) else "No"
-    return spf, None, None
+    spf_status, dkim_status, dmarc_status = "No", "No", "No"
+
+    # --- SPF ---
+    spf_record = next((x for x in txt_records if "v=spf1" in x.lower()), None)
+    if spf_record:
+        if "-all" in spf_record:
+            spf_status = "Yes:Strict"
+        elif "~all" in spf_record:
+            spf_status = "Yes:Soft"
+        elif "+all" in spf_record or "?all" in spf_record:
+            spf_status = "Yes:Weak"
+        else:
+            spf_status = "Yes"
+
+    # --- DKIM ---
+    if any("v=dkim1" in x.lower() for x in txt_records):
+        dkim_status = "Yes"
+    elif any("_domainkey" in x.lower() for x in txt_records):
+        dkim_status = "Yes:Unknown"
+
+    # --- DMARC ---
+    dmarc_record = next((x for x in txt_records if "v=dmarc1" in x.lower()), None)
+    if dmarc_record:
+        match = re.search(r"p=([a-z]+)", dmarc_record)
+        if match:
+            dmarc_status = f"Yes:{match.group(1).capitalize()}"
+        else:
+            dmarc_status = "Yes:Unknown"
+
+    return spf_status, dkim_status, dmarc_status
+
+
 
 def check_dnssec(domain):
     try:
@@ -546,9 +580,7 @@ def process_single_domain(domain, whois_cache, new_whois_data, pagerank_data={})
     # Archive count placeholder
     row["Archive_Count"] = None
 
-    spf_status, _, _ = parse_txt_for_email_security(txt_records)
-    dmarc_status = "Yes" if safe_resolve(f"_dmarc.{domain}", "TXT") else "No"
-    dkim_status = "Yes" if safe_resolve(f"default._domainkey.{domain}", "TXT") else "No"
+    spf_status, dkim_status, dmarc_status = parse_txt_for_email_security(txt_records)
     
     row["SPF_Status"] = spf_status
     row["DKIM_Status"] = dkim_status
@@ -664,4 +696,5 @@ def process_domains(input_file="domains.txt", output_file="domains_enriched.csv"
 # Entry
 # ------------------------
 if __name__ == "__main__":
+
     process_domains("domains.txt", "domains_enriched.csv")
