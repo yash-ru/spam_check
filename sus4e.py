@@ -365,11 +365,11 @@ def get_domain_structure(domain):
     ext = tldextract.extract(domain)
     parent = getattr(ext, "top_domain_under_public_suffix", None) or domain
     subdomain = ext.subdomain
-    domain_len = len(parent)
+    domain_len = len(domain)
     subdomain_count = len(subdomain.split('.')) if subdomain else 0
-    digits_ratio = sum(c.isdigit() for c in parent) / max(len(parent),1)
-    hyphen_ratio = parent.count('-') / max(len(parent),1)
-    entropy = -sum(p*math.log2(p) for p in [(parent.count(c)/len(parent)) for c in set(parent)] if p>0)
+    digits_ratio = sum(c.isdigit() for c in domain) / max(len(domain),1)
+    hyphen_ratio = domain.count('-') / max(len(domain),1)
+    entropy = -sum(p*math.log2(p) for p in [(domain.count(c)/len(domain)) for c in set(domain)] if p>0)
     return {
         "ParentDomain": parent,
         "DomainLength": domain_len,
@@ -519,6 +519,8 @@ def process_single_domain(domain, whois_cache, new_whois_data, pagerank_data={})
     row = {}
     parent = get_parent_domain(domain)
     
+    row["Domain"] = domain
+
     # Domain Structure
     row.update(get_domain_structure(domain))
     
@@ -669,7 +671,7 @@ def process_domains(input_file="domains.txt", output_file="domains_enriched.csv"
     
     # CSV Header (all signals)
     fieldnames = [
-        "ParentDomain","DomainLength","SubdomainCount","DigitsRatio","HyphenRatio","Entropy",
+        "Domain","ParentDomain","DomainLength","SubdomainCount","DigitsRatio","HyphenRatio","Entropy",
         "A_Records","AAAA_Records","PTR_Records","MX_Records","NS_Records","TXT_Records",
         "SOA_Record","CNAME_Record","SPF_Status","DKIM_Status","DMARC_Status","DNSSEC_Status",
         "WHOIS_Created","WHOIS_AgeDays","WHOIS_ExpiresDays","WHOIS_Registrar","WHOIS_Privacy",
