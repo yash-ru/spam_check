@@ -504,28 +504,56 @@ def score_domain(row):
     # EMAIL AUTHENTICATION
     # ========================================================================
     
-    spf_valid = is_yes(row.get('SPF_Status'))
+    #spf_valid = is_yes(row.get('SPF_Status'))
+    spf_status = str(row.get('SPF_Status', '')).strip().lower()
     dkim_valid = is_yes(row.get('DKIM_Status'))
     dmarc_valid = is_yes(row.get('DMARC_Status'))
     
-    auth_count = sum([spf_valid or False, dkim_valid or False, dmarc_valid or False])
-    
+    auth_count = sum([
+        spf_status.lower().startswith('yes'),
+        bool(dkim_valid),
+        bool(dmarc_valid)
+    ])
+
     if auth_count == 3:
-        score += 20
+        # Adjust score based on SPF strength
+        if 'strict' in spf_status:
+            score += 22
+            evidence.append("Complete authentication with strict SPF (-all)")
+        elif 'soft' in spf_status:
+            score += 18
+            evidence.append("Complete authentication with soft SPF (~all)")
+        elif 'weak' in spf_status:
+            score += 15
+            evidence.append("Complete authentication with weak SPF (+all/?all)")
+        else:
+            score += 20
+            evidence.append("Complete email authentication (SPF+DKIM+DMARC)")
         flags.append("FULL_EMAIL_AUTH")
-        evidence.append("Complete email authentication (SPF+DKIM+DMARC)")
+
     elif auth_count == 2:
-        score += 10
+        if 'strict' in spf_status:
+            score += 12
+            evidence.append("Partial authentication with strict SPF")
+        elif 'soft' in spf_status:
+            score += 9
+            evidence.append("Partial authentication with soft SPF")
+        elif 'weak' in spf_status:
+            score += 6
+            evidence.append("Partial authentication with weak SPF")
+        else:
+            score += 10
         flags.append("PARTIAL_EMAIL_AUTH")
+
     elif auth_count == 0:
         score -= 15
         flags.append("NO_EMAIL_AUTH")
         evidence.append("Missing email authentication")
-    
+
     if is_yes(row.get('DNSSEC_Status')):
         score += 5
         flags.append("DNSSEC_ENABLED")
-    
+
     # ========================================================================
     # REPUTATION & PRESENCE
     # ========================================================================
@@ -800,5 +828,4 @@ def print_summary(rows):
 if __name__ == "__main__":
 
     main()
-
 
