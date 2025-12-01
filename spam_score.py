@@ -648,7 +648,7 @@ def score_domain(row):
     # Critical fields for scoring
     critical_fields = [
         'WHOIS_AgeDays', 'SSL_Valid', 'SPF_Status', 'DKIM_Status', 'DMARC_Status',
-        'PageRank', 'Archive_Count', 'Blacklisted', 'NS_Records', 'MX_Records_Count'
+        'PageRank_Score', 'Archive_Count', 'Blacklisted', 'NS_Records', 'MX_Records_Count'
     ]
     
     available_data = sum(1 for field in critical_fields if has_data(row.get(field)))
@@ -828,4 +828,5 @@ def print_summary(rows):
 if __name__ == "__main__":
 
     main()
+
 
